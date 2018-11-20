@@ -27,14 +27,22 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     let provider = vscode.languages.registerCompletionItemProvider({ scheme: "file", language: "typescript" }, {
-        provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
-            const word = document.getText(document.getWordRangeAtPosition(position));
-            // #Perf: To avoid unnecessary completions, only offer completions if 2 charaters are typed
-            if (word.length < 2) {
-                return [];
+        provideCompletionItems(doc: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
+            const wordRange = doc.getWordRangeAtPosition(position);
+            if (wordRange === undefined) {
+                // Return an incomplete list to make sure vscode
+                // asks us for more when the results are narrowed
+                return new vscode.CompletionList([], true);
             }
 
-            return CompletionItemsCache.get(document.uri);
+            const word = doc.getText(wordRange);
+            if (word.length < 1) {
+                // Return an incomplete list to make sure vscode
+                // asks us for more when the results are narrowed
+                return new vscode.CompletionList([], true);
+            }
+
+            return CompletionItemsCache.get(doc.uri);
         }
     });
 

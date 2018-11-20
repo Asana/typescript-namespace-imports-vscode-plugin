@@ -19,7 +19,7 @@ export function uriToCompletionItem(uri: vscode.Uri): vscode.CompletionItem {
     const moduleName = uriToModuleName(uri);
     const importPath = uriToImportPath(uri);
     const completionItem = new vscode.CompletionItem(moduleName, vscode.CompletionItemKind.Module);
-    completionItem.documentation = importPath;
+    completionItem.detail = importPath;
     const importEdit = `import * as ${moduleName} from "${importPath}";\n`;
     completionItem.additionalTextEdits = [
         vscode.TextEdit.insert(new vscode.Position(0, 0), importEdit)
