@@ -1,27 +1,44 @@
 'use strict';
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as CompletionItemsCache from "./completion_items_cache";
+
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Congratulations, your extension "typescript-namespace-imports-vscode-plugin" is now active!');
+    // On activation create a cache of all files in the system.
+    CompletionItemsCache.refresh();
 
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('extension.sayHello', () => {
-        // The code you place here will be executed every time your command is executed
-
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World!');
+    // Whenever there is a change to the workspace folders refresh the cache
+    // #Perf: This could be optimized if it proves to be slow but I assume it is rare
+    let workspaceWatcher = vscode.workspace.onDidChangeWorkspaceFolders(workspaceChangeEvent => {
+        CompletionItemsCache.refresh();
+    });
+    
+    // Whenever a file is added or removed refresh the cache
+    // #Perf: This could be optimized
+    let fileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/*.ts", false, true, false);
+    fileSystemWatcher.onDidCreate(uri => {
+        CompletionItemsCache.refresh();
+    });
+    fileSystemWatcher.onDidDelete(uri => {
+        CompletionItemsCache.refresh();
     });
 
-    context.subscriptions.push(disposable);
+    let provider = vscode.languages.registerCompletionItemProvider({ scheme: "file", language: "typescript" }, {
+        provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
+            const word = document.getText(document.getWordRangeAtPosition(position));
+            // #Perf: To avoid unnecessary completions, only offer completions if 2 charaters are typed
+            if (word.length < 2) {
+                return [];
+            }
+
+            return CompletionItemsCache.get(document.uri);
+        }
+    });
+
+    context.subscriptions.push(provider, fileSystemWatcher, workspaceWatcher);
 }
 
 // this method is called when your extension is deactivated
