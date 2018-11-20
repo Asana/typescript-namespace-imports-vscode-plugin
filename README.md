@@ -17,7 +17,7 @@ workspace it will offer to import it as a module called
 FileToImport.
 Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
-\!\[demo\]\(images/import_demo.gif\)
+![demo](images/import_demo.gif)
 
 ## Extension Settings
 
