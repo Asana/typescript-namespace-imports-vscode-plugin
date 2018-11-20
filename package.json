@@ -2,6 +2,7 @@
     "name": "typescript-namespace-imports-vscode-plugin",
     "displayName": "typescript-namespace-imports-vscode-plugin",
     "description": "Adds autocomplete support for \"import * as Symbol from \"symbol\"",
+    "repository": "https://github.com/Asana/typescript-namespace-imports-vscode-plugin",
     "version": "0.0.1",
     "publisher": "Josh211ua",
     "engines": {
