@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
     let workspaceWatcher = vscode.workspace.onDidChangeWorkspaceFolders(workspaceChangeEvent => {
         CompletionItemsCache.refresh();
     });
-    
+
     // Whenever a file is added or removed refresh the cache
     // #Perf: This could be optimized
     let fileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/*.ts", false, true, false);
