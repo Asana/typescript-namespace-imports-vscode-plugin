@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { uriToCompletionItem } from "./uri_helpers";
-import * as stripJsonComments from "strip-json-comments";
 import * as Path from "path";
+import * as ts from "typescript";
 
 /**
  * Keep a list of the completion items for each workspaceFolder at all times.
@@ -45,7 +45,8 @@ export function refresh() {
 }
 
 const _tsconfigDocumentToBaseUrl = (tsconfigDoc: vscode.TextDocument): string | null => {
-    const tsconfigObj = JSON.parse(stripJsonComments(tsconfigDoc.getText()));
+    const parseResults = ts.parseConfigFileTextToJson(tsconfigDoc.fileName, tsconfigDoc.getText());
+    const tsconfigObj = parseResults.config;
     if ("compilerOptions" in tsconfigObj && "baseUrl" in tsconfigObj["compilerOptions"]) {
         return <string>tsconfigObj["compilerOptions"]["baseUrl"];
     }
@@ -57,16 +58,12 @@ const _tsconfigUrisToBaseUrlMap = (workspaceFolder: vscode.WorkspaceFolder) => (
 ): Thenable<Record<string, string>> => {
     const recordPromises = Promise.all(
         uris.map(tsconfigUri =>
-            vscode.workspace
-                .openTextDocument(tsconfigUri)
-                .then(_tsconfigDocumentToBaseUrl)
-                .then(maybeBaseUrl =>
-                    maybeBaseUrl
-                        ? {
-                              [Path.relative(workspaceFolder.uri.path, Path.dirname(tsconfigUri.path))]: maybeBaseUrl
-                          }
-                        : null
-                )
+            vscode.workspace.openTextDocument(tsconfigUri).then(tsconfigDoc => {
+                const maybeBaseUrl = _tsconfigDocumentToBaseUrl(tsconfigDoc);
+                return maybeBaseUrl
+                    ? { [Path.relative(workspaceFolder.uri.path, Path.dirname(tsconfigUri.path))]: maybeBaseUrl }
+                    : null;
+            })
         )
     );
     return recordPromises.then(
