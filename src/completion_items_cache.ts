@@ -58,12 +58,17 @@ const _tsconfigUrisToBaseUrlMap = (workspaceFolder: vscode.WorkspaceFolder) => (
 ): Thenable<Record<string, string>> => {
     const recordPromises = Promise.all(
         uris.map(tsconfigUri =>
-            vscode.workspace.openTextDocument(tsconfigUri).then(tsconfigDoc => {
-                const maybeBaseUrl = _tsconfigDocumentToBaseUrl(tsconfigDoc);
-                return maybeBaseUrl
-                    ? { [Path.relative(workspaceFolder.uri.path, Path.dirname(tsconfigUri.path))]: maybeBaseUrl }
-                    : null;
-            })
+            vscode.workspace.openTextDocument(tsconfigUri).then(
+                tsconfigDoc => {
+                    const maybeBaseUrl = _tsconfigDocumentToBaseUrl(tsconfigDoc);
+                    return maybeBaseUrl
+                        ? { [Path.relative(workspaceFolder.uri.path, Path.dirname(tsconfigUri.path))]: maybeBaseUrl }
+                        : null;
+                },
+                error => {
+                    console.error(`Error working with ${tsconfigUri.path}: ${error}`);
+                }
+            )
         )
     );
     return recordPromises.then(
