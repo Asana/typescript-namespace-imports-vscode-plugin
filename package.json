@@ -30,7 +30,7 @@
     "dependencies": {
         "@types/lodash": "^4.14.118",
         "@types/vscode": "^1.47.0",
-        "lodash": "^4.17.19",
+        "lodash": "^4.17.21",
         "path": "^0.12.7",
         "typescript": "^2.6.1"
     }
