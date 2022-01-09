@@ -7,7 +7,7 @@ import { CompletionItemMap } from "./completion_item_map";
 import { CompletionItemMapImpl } from "./completion_item_map_impl";
 
 /**
- * Creates a cache of module completion items backed by map that is split by the first two letters
+ * Creates a cache of module completion items backed by map that is split by the first character
  * of each module name
  */
 export class CompletionItemsCacheImpl implements CompletionItemsCache {
