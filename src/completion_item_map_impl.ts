@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 
 /**
  * Map from the first char of CompletionItem.label to vscode.CompletionItem[]
- * 
+ *
  * TODO: This makes intellisense quick even in large projects, but a more elegant
  * solution might be some type of trie tree.
  */
