@@ -1,0 +1,13 @@
+# Ignore artifacts:
+lib
+
+# Ignore deps
+node_modules
+
+# Config files
+README.md
+package.json
+package-lock.json
+tsconfig.json
+jest.config.js
+.github/

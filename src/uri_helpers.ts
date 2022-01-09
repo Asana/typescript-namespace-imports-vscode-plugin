@@ -29,12 +29,17 @@ export function uriToModuleName(uri: vscode.Uri): string {
     return _.upperFirst(_.camelCase(fileName));
 }
 
-export function uriToCompletionItem(uri: vscode.Uri, baseUrlMap: Record<string, string>): vscode.CompletionItem {
+export function uriToCompletionItem(
+    uri: vscode.Uri,
+    baseUrlMap: Record<string, string>
+): vscode.CompletionItem {
     const moduleName = uriToModuleName(uri);
     const importPath = uriToImportPath(uri, baseUrlMap);
     const completionItem = new vscode.CompletionItem(moduleName, vscode.CompletionItemKind.Module);
     completionItem.detail = importPath;
     const importEdit = `import * as ${moduleName} from "${importPath}";\n`;
-    completionItem.additionalTextEdits = [vscode.TextEdit.insert(new vscode.Position(0, 0), importEdit)];
+    completionItem.additionalTextEdits = [
+        vscode.TextEdit.insert(new vscode.Position(0, 0), importEdit),
+    ];
     return completionItem;
 }
