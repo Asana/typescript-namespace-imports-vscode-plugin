@@ -3,10 +3,10 @@
     "displayName": "typescript-namespace-imports-vscode-plugin",
     "description": "Adds autocomplete support for \"import * as Symbol from \"symbol\"",
     "repository": "https://github.com/Asana/typescript-namespace-imports-vscode-plugin",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "publisher": "josh211ua",
     "engines": {
-        "vscode": "^1.29.0"
+        "vscode": "^1.63.1"
     },
     "categories": [
         "Other"
@@ -17,21 +17,27 @@
     "main": "./out/extension",
     "contributes": {},
     "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./"
+        "vscode:prepublish": "npm run -S esbuild-base -- --minify",
+        "esbuild-base": "rimraf out && esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+        "build": "npm run -S esbuild-base -- --sourcemap",
+        "watch": "npm run -S esbuild-base -- --sourcemap --watch",
+        "lint": "eslint . --ext .ts",
+        "format": "prettier --write src/*.ts src/**/*.ts"
     },
     "devDependencies": {
-        "@types/mocha": "^2.2.42",
+        "@types/lodash": "^4.14.118",
         "@types/node": "^7.0.43",
-        "tslint": "^5.18.0",
-        "typescript": "^2.6.1"
+        "@types/vscode": "^1.63.1",
+        "@typescript-eslint/eslint-plugin": "^5.9.0",
+        "@typescript-eslint/parser": "^5.9.0",
+        "esbuild": "^0.14.11",
+        "eslint": "^8.6.0",
+        "eslint-config-prettier": "^8.3.0",
+        "prettier": "^2.5.1"
     },
     "dependencies": {
-        "@types/lodash": "^4.14.118",
-        "@types/vscode": "^1.47.0",
-        "lodash": "^4.17.19",
+        "lodash": "^4.17.21",
         "path": "^0.12.7",
-        "typescript": "^2.6.1"
+        "typescript": "^4.5.4"
     }
 }

@@ -1,0 +1,6 @@
+# Ignore deps
+node_modules
+
+# Config files
+package-lock.json
+.github/
