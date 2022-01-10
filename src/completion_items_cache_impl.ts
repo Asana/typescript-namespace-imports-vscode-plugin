@@ -6,12 +6,21 @@ import { CompletionItemsCache } from "./completion_items_cache";
 import { CompletionItemMap } from "./completion_item_map";
 import { CompletionItemMapImpl } from "./completion_item_map_impl";
 
+interface Workspace {
+    baseUrlMap: Record<string, string>;
+    completionItemsMap: CompletionItemMap;
+}
+
 /**
- * Creates a cache of module completion items backed by map that is split by the first character
+ * Creates a cache of module completion items backed by aa map that is split by the first character
  * of each module name
+ *
+ * TODO: Using this map makes intellisense quick even in large projects, but a more elegant
+ * solution might be to implement some type of trie tree for CompletionItems
  */
 export class CompletionItemsCacheImpl implements CompletionItemsCache {
-    private _cache: Record<string, CompletionItemMap> = {};
+    // Map from workspaceFolder.name -> cached workspace data
+    private _cache: Record<string, Workspace> = {};
 
     constructor(workspaceFolders: readonly vscode.WorkspaceFolder[]) {
         workspaceFolders.forEach(this._addWorkspace);
@@ -23,16 +32,13 @@ export class CompletionItemsCacheImpl implements CompletionItemsCache {
     };
 
     addFile = (uri: vscode.Uri) => {
-        const workspace = this._getWorkspaceFolderFromUri(uri);
-        if (workspace) {
-            const map = this._cache[workspace.name];
+        const workspaceFolder = this._getWorkspaceFolderFromUri(uri);
+        if (workspaceFolder) {
+            const workspace = this._cache[workspaceFolder.name];
 
-            if (map) {
-                this._getWorkspaceBaseUrlMap(workspace).then(baseUrlMap => {
-                    const item = uriToCompletionItem(uri, baseUrlMap);
-                    const map = this._cache[workspace.name];
-                    map.putItem(item);
-                });
+            if (workspace) {
+                const item = uriToCompletionItem(uri, workspace.baseUrlMap);
+                workspace.completionItemsMap.putItem(item);
             } else {
                 console.error("Cannot add item: Workspace has not been cached");
             }
@@ -42,16 +48,13 @@ export class CompletionItemsCacheImpl implements CompletionItemsCache {
     };
 
     deleteFile = (uri: vscode.Uri) => {
-        const workspace = this._getWorkspaceFolderFromUri(uri);
-        if (workspace) {
-            const map = this._cache[workspace.name];
+        const workspaceFolder = this._getWorkspaceFolderFromUri(uri);
+        if (workspaceFolder) {
+            const workspace = this._cache[workspaceFolder.name];
 
-            if (map) {
-                this._getWorkspaceBaseUrlMap(workspace).then(baseUrlMap => {
-                    const item = uriToCompletionItem(uri, baseUrlMap);
-                    const map = this._cache[workspace.name];
-                    map.removeItem(item);
-                });
+            if (workspace) {
+                const item = uriToCompletionItem(uri, workspace.baseUrlMap);
+                workspace.completionItemsMap.removeItem(item);
             }
         }
 
@@ -59,20 +62,20 @@ export class CompletionItemsCacheImpl implements CompletionItemsCache {
     };
 
     getCompletionList = (currentUri: vscode.Uri, query: string): vscode.CompletionList | [] => {
-        const workspace = this._getWorkspaceFolderFromUri(currentUri);
+        const workspaceFolder = this._getWorkspaceFolderFromUri(currentUri);
 
-        if (!workspace) {
+        if (!workspaceFolder) {
             return [];
         }
 
-        const itemsMap = this._cache[workspace.name];
+        const workspace = this._cache[workspaceFolder.name];
 
-        if (!itemsMap) {
+        if (!workspace) {
             console.warn("Workspace was not in cache");
             return [];
         }
 
-        const items = itemsMap.getItemsAt(this._getPrefix(query));
+        const items = workspace.completionItemsMap.getItemsAt(this._getPrefix(query));
 
         return new vscode.CompletionList(items, false);
     };
@@ -90,10 +93,13 @@ export class CompletionItemsCacheImpl implements CompletionItemsCache {
                     for (const uri of uris) {
                         completionItems.push(uriToCompletionItem(uri, baseUrlMap));
                     }
-                    this._cache[workspaceFolder.name] = new CompletionItemMapImpl(
-                        completionItems,
-                        this._getItemPrefix
-                    );
+                    this._cache[workspaceFolder.name] = {
+                        baseUrlMap,
+                        completionItemsMap: new CompletionItemMapImpl(
+                            completionItems,
+                            this._getItemPrefix
+                        ),
+                    };
                 },
                 error => {
                     console.error(`Error creating cache: ${error}`);
