@@ -12,7 +12,8 @@
         "Other"
     ],
     "activationEvents": [
-        "onLanguage:typescript"
+        "onLanguage:typescript",
+        "onLanguage:typescriptreact"
     ],
     "main": "./out/extension",
     "contributes": {},
