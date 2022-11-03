@@ -85,7 +85,7 @@ export class CompletionItemsCacheImpl implements CompletionItemsCache {
     };
 
     private _addWorkspace = (workspaceFolder: vscode.WorkspaceFolder): void => {
-        const typescriptPattern = new vscode.RelativePattern(workspaceFolder, "**/*.ts");
+        const typescriptPattern = new vscode.RelativePattern(workspaceFolder, "**/*.{ts,tsx}");
         this._getWorkspaceBaseUrlMap(workspaceFolder).then(baseUrlMap => {
             vscode.workspace.findFiles(typescriptPattern).then(
                 uris => {

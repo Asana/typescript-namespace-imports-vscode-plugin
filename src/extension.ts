@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Whenever a file is added or removed refresh the cache
     const fileSystemWatcher = vscode.workspace.createFileSystemWatcher(
-        "**/*.ts",
+        "**/*.{ts,tsx}",
         false,
         true,
         false
@@ -35,7 +35,10 @@ export function activate(context: vscode.ExtensionContext) {
     fileSystemWatcher.onDidDelete(moduleCompletionItemsCache.deleteFile);
 
     const provider = vscode.languages.registerCompletionItemProvider(
-        { scheme: "file", language: "typescript" },
+        [
+            { scheme: "file", language: "typescript" },
+            { scheme: "file", language: "typescriptreact" },
+        ],
         {
             provideCompletionItems(doc: vscode.TextDocument, position: vscode.Position) {
                 const wordRange = doc.getWordRangeAtPosition(position);
